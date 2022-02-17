@@ -39,16 +39,23 @@ def parse_args(args: list[str]) -> Namespace:
         help='A destination UDP port number',
     )
     parser.add_argument(
-        '--frequency',
-        '-f',
+        '--interval',
+        '-i',
         type=float,
         default=1.0,
         help='An interval of sending the time in second.'
     )
     parser.add_argument(
+        '--sync',
+        '-s',
+        type=int,
+        default=5,
+        help='Force sync per the specified update count.'
+    )
+    parser.add_argument(
         '--quiet',
         '-q',
-        type=bool,
+        action='store_true',
         default=False,
         help='No print verbose messages.'
     )
@@ -61,17 +68,18 @@ def main(args: list[str]):
     client = udp_client.SimpleUDPClient(parameters.address, parameters.port)
     print_if(not parameters.quiet, 'Press Ctrl + C to stop this program.')
     try:
-        year = ReducedMessenger(client, AVATAR_PARAMS_YEAR)
-        month = ReducedMessenger(client, AVATAR_PARAMS_MONTH)
-        day = ReducedMessenger(client, AVATAR_PARAMS_DAY)
-        weekday = ReducedMessenger(client, AVATAR_PARAMS_WEEKDAY)
-        hour = ReducedMessenger(client, AVATAR_PARAMS_HOUR)
-        minute = ReducedMessenger(client, AVATAR_PARAMS_MINUTE)
-        second = ReducedMessenger(client, AVATAR_PARAMS_SECOND)
-        hour_f = ReducedMessenger(client, AVATAR_PARAMS_HOUR_F)
-        minute_f = ReducedMessenger(client, AVATAR_PARAMS_MINUTE_F)
-        second_f = ReducedMessenger(client, AVATAR_PARAMS_SECOND_F)
-        daytime = ReducedMessenger(client, AVATAR_PARAMS_DAYTIME)
+        sync = parameters.sync
+        year = ReducedMessenger(client, AVATAR_PARAMS_YEAR, sync)
+        month = ReducedMessenger(client, AVATAR_PARAMS_MONTH, sync)
+        day = ReducedMessenger(client, AVATAR_PARAMS_DAY, sync)
+        weekday = ReducedMessenger(client, AVATAR_PARAMS_WEEKDAY, sync)
+        hour = ReducedMessenger(client, AVATAR_PARAMS_HOUR, sync)
+        minute = ReducedMessenger(client, AVATAR_PARAMS_MINUTE, sync)
+        second = ReducedMessenger(client, AVATAR_PARAMS_SECOND, sync)
+        hour_f = ReducedMessenger(client, AVATAR_PARAMS_HOUR_F, sync)
+        minute_f = ReducedMessenger(client, AVATAR_PARAMS_MINUTE_F, sync)
+        second_f = ReducedMessenger(client, AVATAR_PARAMS_SECOND_F, sync)
+        daytime = ReducedMessenger(client, AVATAR_PARAMS_DAYTIME, sync)
 
         while True:
             now = datetime.now()
@@ -88,7 +96,7 @@ def main(args: list[str]):
             daytime.send(
                 now.hour / 24 + now.minute / 1440 + now.second / 86400
             )
-            sleep(parameters.frequency)
+            sleep(parameters.interval)
 
     except KeyboardInterrupt:
         print_if(not parameters.quiet, 'Terminate by user input.')
@@ -104,17 +112,23 @@ class ReducedMessenger(object):
         '_client',
         '_path',
         '_prev',
+        '_count',
+        '_max_count'
     )
 
-    def __init__(self, client: udp_client.SimpleUDPClient, path: str):
+    def __init__(self, client: udp_client.SimpleUDPClient, path: str, count: int = 5):
         self._client = client
         self._path = path
         self._prev = None
+        self._count = count
+        self._max_count = count
 
     def send(self, value: Any) -> None:
-        if value != self._prev:
+        self._count -= 1
+        if value != self._prev or self._count < 0:
             self._client.send_message(self._path, value)
             self._prev = value
+            self._count = self._max_count
 
 
 if __name__ == '__main__':
