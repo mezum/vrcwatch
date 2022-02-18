@@ -6,10 +6,12 @@ VRCWatch は、[VRChat](https://vrchat.com/) 内のアバター向けに現在�
 
 ## 使い方
 
-VRChat 起動前、もしくは起動中に `run.bat` を実行してください。
-または VRCWatch ディレクトリをカレントディレクトリにした状態で `python3 -m vrcwatch` を実行してください。
-
-// TODO: 加筆する
+1. 予め Python (バージョン 3.9 以降) をインストールします。
+2. 初めて VRCWatch を起動する場合は `setup.bat` を実行します。
+3. VRChat を起動します。
+4. VRChat にて OSC が無効になっている場合は OSC を有効にします。
+5. `run.bat` を実行します。
+6. VRChat を終了した後は、run.bat で開かれたコマンドプロンプトを Ctrl キーを押しながら C キーを押して `run.bat` の実行を終了します。
 
 ## Avatar Parameter
 
@@ -61,6 +63,15 @@ VRChat 起動前、もしくは起動中に `run.bat` を実行してくださ�
   - 型: 実数 (float)
   - 1 日の何割だけ時間が進んだかを表す実数です。0 以上 1 未満を取ります。
   - 午前 0 時 0 分 0 秒 (0:00:00) であれば `0.0` を、午後 12 時 59 分 59 秒 (23:59:59) を約 `0.99999` を取ります。
+- `DateTimeHourFA`
+  - 型: 実数 (float)
+  - `DateTimeDayTime` と同じ値です。
+- `DateTimeMinuteFA`
+  - 型: 実数 (float)
+  - `DateTimeMinuteF` と同じ役割ですが、秒数も考慮してなめらかに増加します。
+- `DateTimeSecondFA`
+  - 型: 実数 (float)
+  - `DateTimeSecondF` と同じ役割ですが、秒未満も考慮してなめらかに増加します。
 
 ## Copyright / License
 
