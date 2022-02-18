@@ -19,6 +19,9 @@ AVATAR_PARAMS_SECOND = '/avatar/parameters/DateTimeSecond'
 AVATAR_PARAMS_HOUR_F = '/avatar/parameters/DateTimeHourF'
 AVATAR_PARAMS_MINUTE_F = '/avatar/parameters/DateTimeMinuteF'
 AVATAR_PARAMS_SECOND_F = '/avatar/parameters/DateTimeSecondF'
+AVATAR_PARAMS_HOUR_FA = '/avatar/parameters/DateTimeHourFA'
+AVATAR_PARAMS_MINUTE_FA = '/avatar/parameters/DateTimeMinuteFA'
+AVATAR_PARAMS_SECOND_FA = '/avatar/parameters/DateTimeSecondFA'
 AVATAR_PARAMS_DAYTIME = '/avatar/parameters/DateTimeDayTime'
 
 
@@ -48,9 +51,15 @@ def parse_args(args: list[str]) -> Namespace:
     parser.add_argument(
         '--sync',
         '-s',
-        type=int,
-        default=5,
-        help='Force sync per the specified update count.'
+        type=float,
+        default=5.0,
+        help='Force sync per the specified in second.'
+    )
+    parser.add_argument(
+        '--with-analog',
+        action='store_true',
+        default=False,
+        help='Send analog value together.'
     )
     parser.add_argument(
         '--quiet',
@@ -65,10 +74,18 @@ def parse_args(args: list[str]) -> Namespace:
 def main(args: list[str]):
     parameters = parse_args(args)
 
+    print_if(
+        not parameters.quiet,
+        f'''server: {parameters.address}:{parameters.port}
+interval: {parameters.interval} sec.
+sync: {parameters.sync} sec.
+analog: {parameters.with_analog}
+''')
+
     client = udp_client.SimpleUDPClient(parameters.address, parameters.port)
     print_if(not parameters.quiet, 'Press Ctrl + C to stop this program.')
     try:
-        sync = parameters.sync
+        sync = int(parameters.sync / parameters.interval)
         year = ReducedMessenger(client, AVATAR_PARAMS_YEAR, sync)
         month = ReducedMessenger(client, AVATAR_PARAMS_MONTH, sync)
         day = ReducedMessenger(client, AVATAR_PARAMS_DAY, sync)
@@ -79,6 +96,9 @@ def main(args: list[str]):
         hour_f = ReducedMessenger(client, AVATAR_PARAMS_HOUR_F, sync)
         minute_f = ReducedMessenger(client, AVATAR_PARAMS_MINUTE_F, sync)
         second_f = ReducedMessenger(client, AVATAR_PARAMS_SECOND_F, sync)
+        hour_fa = ReducedMessenger(client, AVATAR_PARAMS_HOUR_FA, sync)
+        minute_fa = ReducedMessenger(client, AVATAR_PARAMS_MINUTE_FA, sync)
+        second_fa = ReducedMessenger(client, AVATAR_PARAMS_SECOND_FA, sync)
         daytime = ReducedMessenger(client, AVATAR_PARAMS_DAYTIME, sync)
 
         while True:
@@ -93,9 +113,16 @@ def main(args: list[str]):
             hour_f.send(now.hour / 24)
             minute_f.send(now.minute / 60)
             second_f.send(now.second / 60)
-            daytime.send(
-                now.hour / 24 + now.minute / 1440 + now.second / 86400
-            )
+
+            second_analog = now.second / 60 + now.microsecond / 60000000
+            minute_analog = now.minute / 60 + second_analog / 3600
+            hour_analog = now.hour / 24 + minute_analog / 1440
+            if parameters.with_analog:
+                hour_fa.send(hour_analog)
+                minute_fa.send(minute_analog)
+                second_fa.send(second_analog)
+            daytime.send(hour_analog)
+
             sleep(parameters.interval)
 
     except KeyboardInterrupt:
