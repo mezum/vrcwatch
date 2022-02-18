@@ -60,10 +60,10 @@ VRChat 起動前、もしくは起動中に `run.bat` を実行してくださ�
 - `DateTimeDayTime`
   - 型: 実数 (float)
   - 1 日の何割だけ時間が進んだかを表す実数です。0 以上 1 未満を取ります。
-  - 午前 0 時 0 分 0 秒 (0:00:00) であれば `0.0` を、午後 23 時 59 分 59 秒を約 `0.99999` を取ります。
+  - 午前 0 時 0 分 0 秒 (0:00:00) であれば `0.0` を、午後 12 時 59 分 59 秒 (23:59:59) を約 `0.99999` を取ります。
 
 ## Copyright / License
 
 Copyright (c) 2022 Kosaki Mezumona
 
-MIT License, see [LICENSE].
+MIT License, see [LICENSE](LICENSE).

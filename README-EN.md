@@ -31,4 +31,4 @@ Or Execute `python -m vrcwatch` on this repository directory as a current direct
 
 Copyright (c) 2022 Kosaki Mezumona
 
-MIT License, see [LICENSE].
+MIT License, see [LICENSE](LICENSE).
