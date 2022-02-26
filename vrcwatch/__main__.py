@@ -3,6 +3,7 @@
 # Distributed under the MIT License, see the LICENSE file.
 from argparse import ArgumentParser, Namespace
 from datetime import datetime
+from math import ceil
 from time import sleep
 from typing import Any, TextIO
 from pythonosc import udp_client
@@ -110,23 +111,27 @@ analog: {parameters.with_analog}
             hour.send(now.hour)
             minute.send(now.minute)
             second.send(now.second)
-            hour_f.send(now.hour / 24)
-            minute_f.send(now.minute / 60)
-            second_f.send(now.second / 60)
+            hour_f.send(ceil_minifloat(now.hour / 24))
+            minute_f.send(ceil_minifloat(now.minute / 60))
+            second_f.send(ceil_minifloat(now.second / 60))
 
             second_analog = now.second / 60 + now.microsecond / 60000000
             minute_analog = now.minute / 60 + second_analog / 3600
             hour_analog = now.hour / 24 + minute_analog / 1440
             if parameters.with_analog:
-                hour_fa.send(hour_analog)
-                minute_fa.send(minute_analog)
-                second_fa.send(second_analog)
-            daytime.send(hour_analog)
+                hour_fa.send(ceil_minifloat(hour_analog))
+                minute_fa.send(ceil_minifloat(minute_analog))
+                second_fa.send(ceil_minifloat(second_analog))
+            daytime.send(ceil_minifloat(hour_analog))
 
             sleep(parameters.interval)
 
     except KeyboardInterrupt:
         print_if(not parameters.quiet, 'Terminate by user input.')
+
+
+def ceil_minifloat(value: float) -> float:
+    return ceil(value * 128) / 128
 
 
 def print_if(enabled: bool, message: str, file: TextIO = stderr) -> None:
